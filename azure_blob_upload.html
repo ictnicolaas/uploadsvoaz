@@ -50,7 +50,7 @@ document.getElementById("uploadBtn").onclick = async () => {
 
   const newFileName = loggedInUsername + "_" + file.name;
   const sasUrl = "https://uploadsvoaz.blob.core.windows.net/test/" + encodeURIComponent(newFileName) +
-    "?sp=rcw&st=2025-06-19T10:42:38Z&se=2026-06-01T18:42:38Z&spr=https&sv=2024-11-04&sr=c&sig=3Tn1yw%2BjwXG9Of0v%2FbrbNRRYFmL0BS1ABjOinUctXxY%3D";
+    "?sp=acw&st=2025-06-19T13:28:27Z&se=2026-08-01T21:28:27Z&spr=https&sv=2024-11-04&sr=c&sig=tbbpRtswiSw5%2Fu9FsHS2o2SbXdioyBsdgmNwgoOkeHk%3D";
 
   try {
     const response = await fetch(sasUrl, {
