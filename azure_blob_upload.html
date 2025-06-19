@@ -1,76 +1,51 @@
 
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Azure Blob Upload met Office 365 Login</title>
-    <script src="https://alcdn.msauth.net/browser/2.37.0/js/msal-browser.min.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        #uploadSection { display: none; margin-top: 20px; }
-        #status { margin-top: 20px; color: green; }
-    </style>
+    <title>Upload naar Azure Blob Storage</title>
 </head>
 <body>
-    <h1>Upload naar Azure Blob Storage</h1>
-    <button id="loginBtn">Aanmelden met Office 365</button>
-
-    <div id="uploadSection">
-        <p>Welkom, <span id="username"></span>!</p>
-        <input type="file" id="fileInput" />
-        <button id="uploadBtn">Upload naar Blob Storage</button>
-        <div id="status"></div>
-    </div>
+    <h2>Upload een bestand naar Azure Blob Storage</h2>
+    <input type="file" id="fileInput" />
+    <button onclick="uploadFile()">Upload</button>
+    <p id="status"></p>
 
     <script>
-        const msalConfig = {
-            auth: {
-                clientId: "9744af54-6113-40dd-af2d-7c66a1c0074f",
-                authority: "https://login.microsoftonline.com/09edd05b-fad2-49ac-875a-832a4a81c771",
-                redirectUri: window.location.href
-            }
-        };
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const status = document.getElementById('status');
 
-        const msalInstance = new msal.PublicClientApplication(msalConfig);
-
-        document.getElementById("loginBtn").onclick = async () => {
-            try {
-                const loginResponse = await msalInstance.loginPopup({ scopes: ["user.read"] });
-                document.getElementById("username").textContent = loginResponse.account.username;
-                document.getElementById("uploadSection").style.display = "block";
-            } catch (error) {
-                alert("Login mislukt: " + error);
-            }
-        };
-
-        document.getElementById("uploadBtn").onclick = async () => {
-            const file = document.getElementById("fileInput").files[0];
-            if (!file) {
-                alert("Selecteer een bestand.");
+            if (!fileInput.files.length) {
+                status.textContent = "Geen bestand geselecteerd.";
                 return;
             }
 
-            const sasUrl = "https://uploadsvoaz.blob.core.windows.net/test?sp=cw&st=2025-06-19T12:35:58Z&se=2026-06-01T20:35:58Z&spr=https&sv=2024-11-04&sr=c&sig=K%2FjJXpKTX3MiwA%2BCNHVVjLrvaxcwWPBnx7qKKQyXeKM%3D";
+            const file = fileInput.files[0];
+            const sasBaseUrl = "https://uploadsvoaz.blob.core.windows.net/test";
+            const sasToken = "?sp=rcw&st=2025-06-19T10:42:38Z&se=2026-06-01T18:42:38Z&spr=https&sv=2024-11-04&sr=c&sig=3Tn1yw%2BjwXG9Of0v%2FbrbNRRYFmL0BS1ABjOinUctXxY%3D";
+
+            const uploadUrl = sasBaseUrl + "/" + encodeURIComponent(file.name) + sasToken;
 
             try {
-                const response = await fetch(sasUrl, {
+                const response = await fetch(uploadUrl, {
                     method: "PUT",
                     headers: {
-                        "x-ms-blob-type": "BlockBlob",
-                        "Content-Type": file.type
+                        "x-ms-blob-type": "BlockBlob"
                     },
                     body: file
                 });
 
                 if (response.ok) {
-                    document.getElementById("status").textContent = "✅ Bestand succesvol geüpload!";
+                    status.textContent = "Upload geslaagd!";
                 } else {
-                    document.getElementById("status").textContent = "❌ Upload mislukt: " + response.statusText;
+                    const errorText = await response.text();
+                    status.textContent = "Fout bij uploaden: " + response.status + " - " + errorText;
                 }
-            } catch (err) {
-                document.getElementById("status").textContent = "❌ Fout bij uploaden: " + err;
+            } catch (error) {
+                status.textContent = "Fout bij uploaden: " + error;
             }
-        };
+        }
     </script>
 </body>
 </html>
