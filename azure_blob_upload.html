@@ -3,32 +3,51 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Upload naar Azure Blob Storage</title>
+    <title>Azure Blob Upload with Office 365 Login</title>
+    <script src="https://alcdn.msauth.net/browser/2.37.0/js/msal-browser.min.js"></script>
 </head>
 <body>
-    <h2>Upload een bestand naar Azure Blob Storage</h2>
-    <input type="file" id="fileInput" />
-    <button onclick="uploadFile()">Upload</button>
+    <h2>Upload naar Azure Blob Storage (met Office 365-login)</h2>
+    <button id="loginBtn">Aanmelden met Office 365</button>
+    <p id="userInfo"></p>
+    <input type="file" id="fileInput" style="display:none;" />
+    <button id="uploadBtn" style="display:none;">Upload bestand</button>
     <p id="status"></p>
 
     <script>
-        async function uploadFile() {
-            const fileInput = document.getElementById('fileInput');
-            const status = document.getElementById('status');
+        const msalConfig = {
+            auth: {
+                clientId: "9744af54-6113-40dd-af2d-7c66a1c0074f",
+                authority: "https://login.microsoftonline.com/09edd05b-fad2-49ac-875a-832a4a81c771",
+                redirectUri: "https://iridescent-pie-f973f8.netlify.app"
+            }
+        };
 
-            if (!fileInput.files.length) {
-                status.textContent = "Geen bestand geselecteerd.";
+        const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+        document.getElementById("loginBtn").onclick = async () => {
+            try {
+                const loginResponse = await msalInstance.loginPopup({ scopes: ["user.read"] });
+                document.getElementById("userInfo").innerText = "Ingelogd als: " + loginResponse.account.username;
+                document.getElementById("fileInput").style.display = "block";
+                document.getElementById("uploadBtn").style.display = "block";
+            } catch (error) {
+                document.getElementById("status").innerText = "Login mislukt: " + error;
+            }
+        };
+
+        document.getElementById("uploadBtn").onclick = async () => {
+            const file = document.getElementById("fileInput").files[0];
+            if (!file) {
+                document.getElementById("status").innerText = "Geen bestand geselecteerd.";
                 return;
             }
 
-            const file = fileInput.files[0];
-            const sasBaseUrl = "https://uploadsvoaz.blob.core.windows.net/test";
-            const sasToken = "?sp=acw&st=2025-06-19T13:04:10Z&se=2026-08-01T21:04:10Z&spr=https&sv=2024-11-04&sr=c&sig=QjxZ2827AD4alj2NsSe%2BVj4FfdhaWCiJKJaePPqk33s%3D";
-
-            const uploadUrl = sasBaseUrl + "/" + encodeURIComponent(file.name) + sasToken;
+            const sasUrl = "https://uploadsvoaz.blob.core.windows.net/test/" + encodeURIComponent(file.name) +
+                "?sp=rcw&st=2025-06-19T10:42:38Z&se=2026-06-01T18:42:38Z&spr=https&sv=2024-11-04&sr=c&sig=3Tn1yw%2BjwXG9Of0v%2FbrbNRRYFmL0BS1ABjOinUctXxY%3D";
 
             try {
-                const response = await fetch(uploadUrl, {
+                const response = await fetch(sasUrl, {
                     method: "PUT",
                     headers: {
                         "x-ms-blob-type": "BlockBlob"
@@ -37,15 +56,15 @@
                 });
 
                 if (response.ok) {
-                    status.textContent = "Upload geslaagd!";
+                    document.getElementById("status").innerText = "✅ Bestand succesvol geüpload.";
                 } else {
                     const errorText = await response.text();
-                    status.textContent = "Fout bij uploaden: " + response.status + " - " + errorText;
+                    document.getElementById("status").innerText = "❌ Upload mislukt: " + response.status + " - " + errorText;
                 }
-            } catch (error) {
-                status.textContent = "Fout bij uploaden: " + error;
+            } catch (err) {
+                document.getElementById("status").innerText = "❌ Fout bij uploaden: " + err;
             }
-        }
+        };
     </script>
 </body>
 </html>
