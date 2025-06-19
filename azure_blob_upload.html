@@ -1,70 +1,76 @@
 
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Azure Blob Upload with Office 365 Login</title>
-    <script src="https://alcdn.msauth.net/browser/2.37.0/js/msal-browser.min.js"></script>
+<meta charset="utf-8"/>
+<title>Azure Blob Upload with Office 365 Login</title>
+<script src="https://alcdn.msauth.net/browser/2.37.0/js/msal-browser.min.js"></script>
 </head>
 <body>
-    <h2>Upload naar Azure Blob Storage (met Office 365-login)</h2>
-    <button id="loginBtn">Aanmelden met Office 365</button>
-    <p id="userInfo"></p>
-    <input type="file" id="fileInput" style="display:none;" />
-    <button id="uploadBtn" style="display:none;">Upload bestand</button>
-    <p id="status"></p>
+<h2>Upload naar Azure Blob Storage (met Office 365-login)</h2>
+<button id="loginBtn">Aanmelden met Office 365</button>
+<p id="userInfo"></p>
+<input id="fileInput" style="display:none;" type="file"/>
+<button id="uploadBtn" style="display:none;">Upload bestand</button>
+<p id="status"></p>
 
-    <script>
-        const msalConfig = {
-            auth: {
-                clientId: "9744af54-6113-40dd-af2d-7c66a1c0074f",
-                authority: "https://login.microsoftonline.com/09edd05b-fad2-49ac-875a-832a4a81c771",
-                redirectUri: "https://iridescent-pie-f973f8.netlify.app"
-            }
-        };
 
-        const msalInstance = new msal.PublicClientApplication(msalConfig);
+<script>
+let loggedInUsername = "";
 
-        document.getElementById("loginBtn").onclick = async () => {
-            try {
-                const loginResponse = await msalInstance.loginPopup({ scopes: ["user.read"] });
-                document.getElementById("userInfo").innerText = "Ingelogd als: " + loginResponse.account.username;
-                document.getElementById("fileInput").style.display = "block";
-                document.getElementById("uploadBtn").style.display = "block";
-            } catch (error) {
-                document.getElementById("status").innerText = "Login mislukt: " + error;
-            }
-        };
+const msalConfig = {
+  auth: {
+    clientId: "9744af54-6113-40dd-af2d-7c66a1c0074f",
+    authority: "https://login.microsoftonline.com/09edd05b-fad2-49ac-875a-832a4a81c771",
+    redirectUri: "https://iridescent-pie-f973f8.netlify.app"
+  }
+};
 
-        document.getElementById("uploadBtn").onclick = async () => {
-            const file = document.getElementById("fileInput").files[0];
-            if (!file) {
-                document.getElementById("status").innerText = "Geen bestand geselecteerd.";
-                return;
-            }
+const msalInstance = new msal.PublicClientApplication(msalConfig);
 
-            const sasUrl = "https://uploadsvoaz.blob.core.windows.net/test/" + encodeURIComponent(file.name) +
-                "?sp=rcw&st=2025-06-19T13:16:25Z&se=2026-08-01T21:16:25Z&spr=https&sv=2024-11-04&sr=c&sig=P%2BPB0DziEuU%2F9M8EL7zVG3wvMl2Njgh1EE5KEBp5ZV8%3D";
+document.getElementById("loginBtn").onclick = async () => {
+  try {
+    const loginResponse = await msalInstance.loginPopup({ scopes: ["user.read"] });
+    loggedInUsername = loginResponse.account.username.replace(/[^a-zA-Z0-9@.]/g, "_");
+    document.getElementById("userInfo").innerText = "Ingelogd als: " + loggedInUsername;
+    document.getElementById("fileInput").style.display = "block";
+    document.getElementById("uploadBtn").style.display = "block";
+  } catch (error) {
+    document.getElementById("status").innerText = "Login mislukt: " + error;
+  }
+};
 
-            try {
-                const response = await fetch(sasUrl, {
-                    method: "PUT",
-                    headers: {
-                        "x-ms-blob-type": "BlockBlob"
-                    },
-                    body: file
-                });
+document.getElementById("uploadBtn").onclick = async () => {
+  const file = document.getElementById("fileInput").files[0];
+  if (!file) {
+    document.getElementById("status").innerText = "Geen bestand geselecteerd.";
+    return;
+  }
 
-                if (response.ok) {
-                    document.getElementById("status").innerText = "✅ Bestand succesvol geüpload.";
-                } else {
-                    const errorText = await response.text();
-                    document.getElementById("status").innerText = "❌ Upload mislukt: " + response.status + " - " + errorText;
-                }
-            } catch (err) {
-                document.getElementById("status").innerText = "❌ Fout bij uploaden: " + err;
-            }
-        };
-    </script>
+  const newFileName = loggedInUsername + "_" + file.name;
+  const sasUrl = "https://uploadsvoaz.blob.core.windows.net/test/" + encodeURIComponent(newFileName) +
+    "?sp=rcw&st=2025-06-19T10:42:38Z&se=2026-06-01T18:42:38Z&spr=https&sv=2024-11-04&sr=c&sig=3Tn1yw%2BjwXG9Of0v%2FbrbNRRYFmL0BS1ABjOinUctXxY%3D";
+
+  try {
+    const response = await fetch(sasUrl, {
+      method: "PUT",
+      headers: {
+        "x-ms-blob-type": "BlockBlob"
+      },
+      body: file
+    });
+
+    if (response.ok) {
+      document.getElementById("status").innerText = "✅ Bestand succesvol geüpload.";
+    } else {
+      const errorText = await response.text();
+      document.getElementById("status").innerText = "❌ Upload mislukt: " + response.status + " - " + errorText;
+    }
+  } catch (err) {
+    document.getElementById("status").innerText = "❌ Fout bij uploaden: " + err;
+  }
+};
+</script>
 </body>
 </html>
