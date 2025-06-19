@@ -50,7 +50,7 @@
                 return;
             }
 
-            const sasUrl = "https://uploadsvoaz.blob.core.windows.net/test/" + encodeURIComponent(file.name) + "?sp=r&st=2025-06-19T10:42:38Z&se=2026-06-01T18:42:38Z&spr=https&sv=2024-11-04&sr=c&sig=3Tn1yw%2BjwXG9Of0v%2FbrbNRRYFmL0BS1ABjOinUctXxY%3D";
+            const sasUrl = "https://uploadsvoaz.blob.core.windows.net/test?sp=cw&st=2025-06-19T12:35:58Z&se=2026-06-01T20:35:58Z&spr=https&sv=2024-11-04&sr=c&sig=K%2FjJXpKTX3MiwA%2BCNHVVjLrvaxcwWPBnx7qKKQyXeKM%3D";
 
             try {
                 const response = await fetch(sasUrl, {
