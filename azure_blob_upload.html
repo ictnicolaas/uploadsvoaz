@@ -1,8 +1,7 @@
 <!DOCTYPE html>
- 
 <html lang="en">
 <head>
-    <style>
+<style>
     body {
       display: flex;
       flex-direction: column;
@@ -20,111 +19,106 @@
       cursor: pointer;
     }
  
+    /* CHANGED: hide fileInput fully */
     #fileInput {
-      margin-top: 10px;
+      display: none;
+    }
+ 
+    /* CHANGED: Custom file button style */
+    #customFileBtn {
+      display: none; /* Initially hidden, shown after login */
     }
  
     img {
       display: block;
-      margin: 20px auto 0; /* Top margin 20px, auto left/right to center */
-      max-width: 100%; /* Responsive sizing */
+      margin: 20px auto 0;
+      max-width: 100%;
       height: auto;
     }
- 
-    #customFileBtn {
-    background-color: #0078D4;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 12px 24px;
-    font-size: 20px;
-    margin: 10px;
-    cursor: pointer;
-}
- 
- 
-  </style>
+</style>
 <meta charset="utf-8"/>
-    <title>Azure Blob Upload with Office 365 Login</title>
-    <script src="https://alcdn.msauth.net/browser/2.37.0/js/msal-browser.min.js"></script>
+<title>Azure Blob Upload with Office 365 Login</title>
+<script src="https://alcdn.msauth.net/browser/2.37.0/js/msal-browser.min.js"></script>
 </head>
 <body>
-    <img src="https://nicolaas.nl/Portals/_default/Skins/Sint%20Nicolaas%20Lyceum/images/logo.png" alt="St Nicolaas Lyceum Logo">
-    <h2>Upload naar Azure Blob Storage (met Office 365-login)</h2>
-    <button id="loginBtn">Aanmelden met Office 365</button>
-    <p id="userInfo"></p>
-    <input id="fileInput" style="display:none;" type="file"/>
-    <!-- ✅ Custom button that triggers file selection -->
-    <button id="customFileBtn" style="display:none;">📁 Bestand kiezen</button>
+<img src="https://nicolaas.nl/Portals/_default/Skins/Sint%20Nicolaas%20Lyceum/images/logo.png" alt="St Nicolaas Lyceum Logo">
+<h2>Upload naar Azure Blob Storage (met Office 365-login)</h2>
  
-    <button id="uploadBtn" style="display:none;">Upload bestand</button>
-    <p id="status"></p>
+  <button id="loginBtn">Aanmelden met Office 365</button>
+<p id="userInfo"></p>
  
+  <!-- CHANGED: Hidden actual file input -->
+<input id="fileInput" type="file"/>
  
-<script>
+  <!-- CHANGED: New custom "Bestand kiezen" button -->
+<button id="customFileBtn">📁 Bestand kiezen</button>
+ 
+  <button id="uploadBtn" style="display:none;">Upload bestand</button>
+<p id="status"></p>
+ 
+  <script>
     let loggedInUsername = "";
  
-        const msalConfig = {
-        auth: {
-         clientId: "9744af54-6113-40dd-af2d-7c66a1c0074f",
-         authority: "https://login.microsoftonline.com/09edd05b-fad2-49ac-875a-832a4a81c771",
+    const msalConfig = {
+      auth: {
+        clientId: "9744af54-6113-40dd-af2d-7c66a1c0074f",
+        authority: "https://login.microsoftonline.com/09edd05b-fad2-49ac-875a-832a4a81c771",
         redirectUri: "https://iridescent-pie-f973f8.netlify.app"
-     }
-};
+      }
+    };
  
-const msalInstance = new msal.PublicClientApplication(msalConfig);
+    const msalInstance = new msal.PublicClientApplication(msalConfig);
  
-document.getElementById("loginBtn").onclick = async () => {
-  try {
-    const loginResponse = await msalInstance.loginPopup({ scopes: ["user.read"] });
-    loggedInUsername = loginResponse.account.username.replace(/[^a-zA-Z0-9@.]/g, "_");
-    document.getElementById("userInfo").innerText = "Ingelogd als: " + loggedInUsername;
-    document.getElementById("fileInput").style.display = "block";
-    document.getElementById("uploadBtn").style.display = "block";
-  } catch (error) {
-    document.getElementById("status").innerText = "Login mislukt: " + error;
-  }
-};
-// ✅ When login is successful, show both buttons
-document.getElementById("fileInput").style.display = "none"; // keep hidden
-document.getElementById("customFileBtn").style.display = "block"; // show custom button
-document.getElementById("uploadBtn").style.display = "block";
+    document.getElementById("loginBtn").onclick = async () => {
+      try {
+        const loginResponse = await msalInstance.loginPopup({ scopes: ["user.read"] });
+        loggedInUsername = loginResponse.account.username.replace(/[^a-zA-Z0-9@.]/g, "_");
+        document.getElementById("userInfo").innerText = "Ingelogd als: " + loggedInUsername;
  
-// ✅ Make the custom button open the hidden file input
-document.getElementById("customFileBtn").onclick = () => {
-  document.getElementById("fileInput").click();
-};
+        // CHANGED: Show custom file button instead of default file input
+        document.getElementById("customFileBtn").style.display = "block";
+        document.getElementById("uploadBtn").style.display = "block";
  
-document.getElementById("uploadBtn").onclick = async () => {
-  const file = document.getElementById("fileInput").files[0];
-  if (!file) {
-    document.getElementById("status").innerText = "Geen bestand geselecteerd.";
-    return;
-  }
+      } catch (error) {
+        document.getElementById("status").innerText = "Login mislukt: " + error;
+      }
+    };
  
-  const newFileName = loggedInUsername + "_" + file.name;
-  const sasUrl = "https://uploadsvoaz.blob.core.windows.net/test/" + encodeURIComponent(newFileName) +
-    "?sp=cw&st=2025-06-19T13:28:27Z&se=2026-08-01T21:28:27Z&spr=https&sv=2024-11-04&sr=c&sig=xI4Gk3vcjEGscXBoSrW270qVWCyMOC%2FdQPlg2FI7VUQ%3D";
+    // CHANGED: When custom file button is clicked, trigger hidden input
+    document.getElementById("customFileBtn").onclick = () => {
+      document.getElementById("fileInput").click();
+    };
  
-  try {
-    const response = await fetch(sasUrl, {
-      method: "PUT",
-      headers: {
-        "x-ms-blob-type": "BlockBlob"
-      },
-      body: file
-    });
+    document.getElementById("uploadBtn").onclick = async () => {
+      const file = document.getElementById("fileInput").files[0];
+      if (!file) {
+        document.getElementById("status").innerText = "Geen bestand geselecteerd.";
+        return;
+      }
  
-    if (response.ok) {
-      document.getElementById("status").innerText = "✅ Bestand succesvol geüpload.";
-    } else {
-      const errorText = await response.text();
-      document.getElementById("status").innerText = "❌ Upload mislukt: " + response.status + " - " + errorText;
-    }
-  } catch (err) {
-    document.getElementById("status").innerText = "❌ Fout bij uploaden: " + err;
-  }
-};
+      const newFileName = loggedInUsername + "_" + file.name;
+      const sasUrl = "https://uploadsvoaz.blob.core.windows.net/test/" + encodeURIComponent(newFileName) +
+        "?sp=cw&st=2025-06-19T13:28:27Z&se=2026-08-01T21:28:27Z&spr=https&sv=2024-11-04&sr=c&sig=xI4Gk3vcjEGscXBoSrW270qVWCyMOC%2FdQPlg2FI7VUQ%3D";
+ 
+      try {
+        const response = await fetch(sasUrl, {
+          method: "PUT",
+          headers: {
+            "x-ms-blob-type": "BlockBlob"
+          },
+          body: file
+        });
+ 
+        if (response.ok) {
+          document.getElementById("status").innerText = "✅ Bestand succesvol geüpload.";
+        } else {
+          const errorText = await response.text();
+          document.getElementById("status").innerText = "❌ Upload mislukt: " + response.status + " - " + errorText;
+        }
+      } catch (err) {
+        document.getElementById("status").innerText = "❌ Fout bij uploaden: " + err;
+      }
+    };
 </script>
 </body>
 </html>
