@@ -52,6 +52,7 @@
  
   <button id="uploadBtn" style="display:none;">Upload bestand</button>
 <p id="status"></p>
+ 
 <script>
     let loggedInUsername = "";
     const msalConfig = {
@@ -62,18 +63,24 @@
       }
     };
     const msalInstance = new msal.PublicClientApplication(msalConfig);
+ 
     document.getElementById("loginBtn").onclick = async () => {
       try {
         const loginResponse = await msalInstance.loginPopup({ scopes: ["user.read"] });
         loggedInUsername = loginResponse.account.username.replace(/[^a-zA-Z0-9@.]/g, "_");
         document.getElementById("userInfo").innerText = "Ingelogd als: " + loggedInUsername;
+ 
+        // Hide the login button after login
+        document.getElementById("loginBtn").style.display = "none";
         // CHANGED: Show custom file button instead of default file input
         document.getElementById("customFileBtn").style.display = "block";
         document.getElementById("uploadBtn").style.display = "block";
+ 
       } catch (error) {
         document.getElementById("status").innerText = "Login mislukt: " + error;
       }
     };
+ 
     // CHANGED: When custom file button is clicked, trigger hidden input
     document.getElementById("customFileBtn").onclick = () => {
       document.getElementById("fileInput").click();
@@ -92,7 +99,9 @@
         document.getElementById("status").innerText = "Geen bestand geselecteerd.";
         return;
       }
+ 
       const newFileName = loggedInUsername + "_" + file.name;
+ 
       const sasUrl = "https://uploadsvoaz.blob.core.windows.net/test/" + encodeURIComponent(newFileName) +
         "?sp=cw&st=2025-06-19T13:28:27Z&se=2026-08-01T21:28:27Z&spr=https&sv=2024-11-04&sr=c&sig=xI4Gk3vcjEGscXBoSrW270qVWCyMOC%2FdQPlg2FI7VUQ%3D";
       try {
@@ -116,3 +125,4 @@
 </script>
 </body>
 </html>
+ 
