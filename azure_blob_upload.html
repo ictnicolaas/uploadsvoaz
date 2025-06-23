@@ -5,13 +5,49 @@
 <meta charset="utf-8"/>
 <title>Azure Blob Upload with Office 365 Login</title>
 <script src="https://alcdn.msauth.net/browser/2.37.0/js/msal-browser.min.js"></script>
+<head>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: sans-serif;
+      text-align: center;
+    }
+ 
+    button {
+      padding: 12px 24px;
+      font-size: 20px;
+      margin: 10px;
+      cursor: pointer;
+    }
+ 
+    #fileInput {
+      margin-top: 10px;
+    }
+ 
+    img {
+      display: block;
+      margin: 20px auto 0; /* Top margin 20px, auto left/right to center */
+      max-width: 100%; /* Responsive sizing */
+      height: auto;
+    }
+ 
+  </style>
 </head>
 <body>
-<h2>Upload naar Azure Blob Storage (met Office 365-login)</h2>
-<button id="loginBtn">Aanmelden met Office 365</button>
-<p id="userInfo"></p>
-<input id="fileInput" style="display:none;" type="file"/>
-<button id="uploadBtn" style="display:none;">Upload bestand</button>
+  <img src="https://nicolaas.nl/Portals/_default/Skins/Sint%20Nicolaas%20Lyceum/images/logo.png" alt="St Nicolaas Lyceum Logo">
+ 
+  <h2>Upload naar Azure Blob Storage (met Office 365-login)</h2>
+ 
+  <button id="loginBtn">Aanmelden met Office 365</button>
+ 
+  <input id="fileInput" style="display:none;" type="file" />
+ 
+  <button id="uploadBtn" style="display:none;">Upload bestand</button>
+
 <p id="status"></p>
 
 
