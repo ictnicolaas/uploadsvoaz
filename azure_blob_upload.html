@@ -2,34 +2,63 @@
 <html lang="en">
 <head>
 <style>
+
     body {
+
       display: flex;
+
       flex-direction: column;
+
       align-items: center;
+
       justify-content: center;
+
       height: 100vh;
+
       font-family: sans-serif;
+
       text-align: center;
+
     }
+
     button {
+
       padding: 12px 24px;
+
       font-size: 20px;
+
       margin: 10px;
+
       cursor: pointer;
+
     }
+
     /* CHANGED: hide fileInput fully */
+
     #fileInput {
+
       display: none;
+
     }
+
     /* CHANGED: Custom file button style */
+
     #customFileBtn {
+
       display: none; /* Initially hidden, shown after login */
+
     }
+
     img {
+
       display: block;
+
       margin: 20px auto 0;
+
       max-width: 100%;
+
       height: auto;
+
     }
 </style>
 <meta charset="utf-8"/>
@@ -43,86 +72,181 @@
 <p id="userInfo"></p>
 <!-- CHANGED: Hidden actual file input -->
 <input id="fileInput" type="file"/>
- 
-  <!-- CHANGED: New custom "Bestand kiezen" button -->
+<!-- CHANGED: New custom "Bestand kiezen" button -->
 <button id="customFileBtn">📁 Bestand kiezen</button>
- 
-<!-- Show selected file name here -->
+<button id="uploadBtn" style="display:none;">Upload bestand</button>
+<p id="status"></p>
 <p id="selectedFileName"></p>
  
-  <button id="uploadBtn" style="display:none;">Upload bestand</button>
-<p id="status"></p>
- 
 <script>
+
     let loggedInUsername = "";
+
     const msalConfig = {
+
       auth: {
+
         clientId: "9744af54-6113-40dd-af2d-7c66a1c0074f",
+
         authority: "https://login.microsoftonline.com/09edd05b-fad2-49ac-875a-832a4a81c771",
+
         redirectUri: "https://iridescent-pie-f973f8.netlify.app"
+
       }
+
     };
+
     const msalInstance = new msal.PublicClientApplication(msalConfig);
- 
+
     document.getElementById("loginBtn").onclick = async () => {
+
       try {
+
         const loginResponse = await msalInstance.loginPopup({ scopes: ["user.read"] });
+
         loggedInUsername = loginResponse.account.username.replace(/[^a-zA-Z0-9@.]/g, "_");
+
         document.getElementById("userInfo").innerText = "Ingelogd als: " + loggedInUsername;
  
         // Hide the login button after login
+
         document.getElementById("loginBtn").style.display = "none";
-        // CHANGED: Show custom file button instead of default file input
+ 
+        // Show custom file button instead of default file input
+
         document.getElementById("customFileBtn").style.display = "block";
+
         document.getElementById("uploadBtn").style.display = "block";
  
       } catch (error) {
+
         document.getElementById("status").innerText = "Login mislukt: " + error;
+
       }
+
     };
  
-    // CHANGED: When custom file button is clicked, trigger hidden input
+    // When custom file button is clicked, trigger hidden input
+
     document.getElementById("customFileBtn").onclick = () => {
+
       document.getElementById("fileInput").click();
+
     };
  
-    // When a file is selected, display the file name
+    // Display the name of the selected file
+
     document.getElementById("fileInput").addEventListener('change', function() {
+
       const file = this.files[0];
+
       if (file) {
+
         document.getElementById("selectedFileName").innerText = "Geselecteerd bestand: " + file.name;
+
       }
+
     });
+ 
     document.getElementById("uploadBtn").onclick = async () => {
+
       const file = document.getElementById("fileInput").files[0];
+
       if (!file) {
+
         document.getElementById("status").innerText = "Geen bestand geselecteerd.";
+
         return;
+
       }
  
-      const newFileName = loggedInUsername + "_" + file.name;
- 
-      const sasUrl = "https://uploadsvoaz.blob.core.windows.net/test/" + encodeURIComponent(newFileName) +
+      let newFileName = loggedInUsername + "_" + file.name;
+
+      let sasUrl = "https://uploadsvoaz.blob.core.windows.net/test/" + encodeURIComponent(newFileName) +
+
         "?sp=cw&st=2025-06-19T13:28:27Z&se=2026-08-01T21:28:27Z&spr=https&sv=2024-11-04&sr=c&sig=xI4Gk3vcjEGscXBoSrW270qVWCyMOC%2FdQPlg2FI7VUQ%3D";
-      try {
-        const response = await fetch(sasUrl, {
-          method: "PUT",
-          headers: {
-            "x-ms-blob-type": "BlockBlob"
-          },
-          body: file
-        });
-        if (response.ok) {
-          document.getElementById("status").innerText = "✅ Bestand succesvol geüpload.";
-        } else {
-          const errorText = await response.text();
-          document.getElementById("status").innerText = "❌ Upload mislukt: " + response.status + " - " + errorText;
-        }
-      } catch (err) {
-        document.getElementById("status").innerText = "❌ Fout bij uploaden: " + err;
+ 
+      let counter = 1;
+
+      // Loop to check if file exists and add number if it does
+
+      while (await checkIfFileExists(sasUrl)) {
+
+        // Add number to the filename before the extension
+
+        newFileName = loggedInUsername + "_" + file.name.replace(/\.[^/.]+$/, "") + "_" + counter + file.name.match(/\.[^/.]+$/)[0];
+ 
+        // Rebuild the SAS URL with the new filename
+
+        sasUrl = "https://uploadsvoaz.blob.core.windows.net/test/" + encodeURIComponent(newFileName) +
+
+          "?sp=cw&st=2025-06-19T13:28:27Z&se=2026-08-01T21:28:27Z&spr=https&sv=2024-11-04&sr=c&sig=xI4Gk3vcjEGscXBoSrW270qVWCyMOC%2FdQPlg2FI7VUQ%3D";
+
+        counter++; // Increment the number for the next attempt
+
       }
+ 
+      try {
+
+        const response = await fetch(sasUrl, {
+
+          method: "PUT",
+
+          headers: {
+
+            "x-ms-blob-type": "BlockBlob"
+
+          },
+
+          body: file
+
+        });
+ 
+        if (response.ok) {
+
+          document.getElementById("status").innerText = "✅ Bestand succesvol geüpload.";
+
+        } else {
+
+          const errorText = await response.text();
+
+          document.getElementById("status").innerText = "❌ Upload mislukt: " + response.status + " - " + errorText;
+
+        }
+
+      } catch (err) {
+
+        document.getElementById("status").innerText = "❌ Fout bij uploaden: " + err;
+
+      }
+
     };
+ 
+    // Function to check if file exists (pseudo-function to simulate existence check)
+
+    async function checkIfFileExists(sasUrl) {
+
+      try {
+
+        const response = await fetch(sasUrl, {
+
+          method: "HEAD" // Use HEAD to check if the file exists without downloading it
+
+        });
+
+        // If the file exists, the status will be 200
+
+        return response.ok;
+
+      } catch (error) {
+
+        return false; // If error occurs, consider the file not existing
+
+      }
+
+    }
 </script>
 </body>
 </html>
+
  
