@@ -20,13 +20,10 @@
       margin: 10px;
       cursor: pointer;
     }
-    #fileInput, #uploadBtn {
+    #fileInput, #uploadBtn, #customFileBtn {
       display: none;
     }
-    #customFileBtn {
-      display: none;
-    }
-    #dropdownMenu {
+    #dropdownMenu, #subDropdown {
       display: none;
       font-size: 18px;
       padding: 8px;
@@ -46,23 +43,17 @@
   <button id="loginBtn">Aanmelden met Office 365</button>
   <p id="userInfo"></p>
 
-  <!-- Pull-downmenu -->
+  <!-- Categorie dropdown -->
   <select id="dropdownMenu">
-    <option value="">-- Kies jouw vak --</option>
-    <option value="NED">Nederlands</option>
-    <option value="ENG">Engels</option>
-    <option value="DUI">Duits</option>
-    <option value="FRA">Frans</option>
-    <option value="AK">Aardrijkskunde</option>
-    <option value="ECO">Economie</option>
-    <option value="GES">Geschiedenis</option>
-    <option value="INF">Informatica</option>
-    <option value="NAT">Natuurkunde</option>
-    <option value="SCH">Scheikunde</option>
-    <option value="SPA">Spaans</option>
-    <option value="WIS">Wiskunde</option>
-     <option value="BIO">Biologie</option>
-    <option value="LB">Levensbeschouwing</option>
+    <option value="">-- Kies een categorie --</option>
+    <option value="documenten">Documenten</option>
+    <option value="afbeeldingen">Afbeeldingen</option>
+    <option value="overig">Overig</option>
+  </select>
+
+  <!-- Subcategorie dropdown -->
+  <select id="subDropdown">
+    <option value="">-- Kies een subcategorie --</option>
   </select>
 
   <!-- Bestand uploaden -->
@@ -111,9 +102,38 @@
       }
     });
 
+    // Subcategorie logica
+    const subDropdown = document.getElementById("subDropdown");
+    const categoryDropdown = document.getElementById("dropdownMenu");
+
+    const opties = {
+      documenten: ["Officiële documenten", "Persoonlijke notities", "PDF-rapporten"],
+      afbeeldingen: ["Foto's", "Screenshots", "Illustraties"],
+      overig: ["ZIP-bestanden", "Audio", "Anders"]
+    };
+
+    categoryDropdown.onchange = () => {
+      const gekozen = categoryDropdown.value;
+
+      if (opties[gekozen]) {
+        subDropdown.innerHTML = "<option value=''>-- Kies een subcategorie --</option>";
+        opties[gekozen].forEach(sub => {
+          const optie = document.createElement("option");
+          optie.value = sub.toLowerCase().replace(/\s+/g, "_");
+          optie.textContent = sub;
+          subDropdown.appendChild(optie);
+        });
+        subDropdown.style.display = "block";
+      } else {
+        subDropdown.style.display = "none";
+        subDropdown.innerHTML = "";
+      }
+    };
+
     document.getElementById("uploadBtn").onclick = async () => {
       const file = document.getElementById("fileInput").files[0];
-      const category = document.getElementById("dropdownMenu").value;
+      const category = categoryDropdown.value;
+      const subcategory = subDropdown.value || "geen_sub";
 
       if (!file) {
         document.getElementById("status").innerText = "❌ Geen bestand geselecteerd.";
@@ -121,11 +141,11 @@
       }
 
       if (!category) {
-        document.getElementById("status").innerText = "❌ Kies een categorie uit het menu.";
+        document.getElementById("status").innerText = "❌ Kies een categorie.";
         return;
       }
 
-      const newFileName = category + "_" + loggedInUsername + "_" + file.name;
+      const newFileName = `${loggedInUsername}_${category}_${subcategory}_${file.name}`;
 
       const sasUrl = "https://uploadsvoaz.blob.core.windows.net/test/" + encodeURIComponent(newFileName) +
         "?sp=cw&st=2025-06-19T13:28:27Z&se=2026-08-01T21:28:27Z&spr=https&sv=2024-11-04&sr=c&sig=xI4Gk3vcjEGscXBoSrW270qVWCyMOC%2FdQPlg2FI7VUQ%3D";
