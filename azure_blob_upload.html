@@ -1,7 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
-<style>
+  <meta charset="utf-8" />
+  <title>Azure Blob Upload met Office 365 Login</title>
+  <script src="https://alcdn.msauth.net/browser/2.37.0/js/msal-browser.min.js"></script>
+  <style>
     body {
       display: flex;
       flex-direction: column;
@@ -17,13 +20,17 @@
       margin: 10px;
       cursor: pointer;
     }
-    /* CHANGED: hide fileInput fully */
-    #fileInput {
+    #fileInput, #uploadBtn {
       display: none;
     }
-    /* CHANGED: Custom file button style */
     #customFileBtn {
-      display: none; /* Initially hidden, shown after login */
+      display: none;
+    }
+    #dropdownMenu {
+      display: none;
+      font-size: 18px;
+      padding: 8px;
+      margin-top: 10px;
     }
     img {
       display: block;
@@ -31,30 +38,32 @@
       max-width: 100%;
       height: auto;
     }
-</style>
-<meta charset="utf-8"/>
-<title>Azure Blob Upload with Office 365 Login</title>
-<script src="https://alcdn.msauth.net/browser/2.37.0/js/msal-browser.min.js"></script>
+  </style>
 </head>
 <body>
-<img src="https://nicolaas.nl/Portals/_default/Skins/Sint%20Nicolaas%20Lyceum/images/logo.png" alt="St Nicolaas Lyceum Logo">
-<h2>Upload uw bestand (met Office 365-login)</h2>
-<button id="loginBtn">Aanmelden met Office 365</button>
-<p id="userInfo"></p>
-<!-- CHANGED: Hidden actual file input -->
-<input id="fileInput" type="file"/>
- 
-  <!-- CHANGED: New custom "Bestand kiezen" button -->
-<button id="customFileBtn">📁 Bestand kiezen</button>
- 
-<!-- Show selected file name here -->
-<p id="selectedFileName"></p>
- 
-  <button id="uploadBtn" style="display:none;">Upload bestand</button>
-<p id="status"></p>
- 
-<script>
+  <img src="https://nicolaas.nl/Portals/_default/Skins/Sint%20Nicolaas%20Lyceum/images/logo.png" alt="St Nicolaas Lyceum Logo">
+  <h2>Upload uw bestand (met Office 365-login)</h2>
+  <button id="loginBtn">Aanmelden met Office 365</button>
+  <p id="userInfo"></p>
+
+  <!-- Pull-downmenu -->
+  <select id="dropdownMenu">
+    <option value="">-- Kies een categorie --</option>
+    <option value="documenten">Documenten</option>
+    <option value="afbeeldingen">Afbeeldingen</option>
+    <option value="overig">Overig</option>
+  </select>
+
+  <!-- Bestand uploaden -->
+  <input id="fileInput" type="file" />
+  <button id="customFileBtn">📁 Bestand kiezen</button>
+  <p id="selectedFileName"></p>
+  <button id="uploadBtn">Upload bestand</button>
+  <p id="status"></p>
+
+  <script>
     let loggedInUsername = "";
+
     const msalConfig = {
       auth: {
         clientId: "9744af54-6113-40dd-af2d-7c66a1c0074f",
@@ -62,58 +71,63 @@
         redirectUri: "https://iridescent-pie-f973f8.netlify.app"
       }
     };
+
     const msalInstance = new msal.PublicClientApplication(msalConfig);
- 
+
     document.getElementById("loginBtn").onclick = async () => {
       try {
         const loginResponse = await msalInstance.loginPopup({ scopes: ["user.read"] });
         loggedInUsername = loginResponse.account.username.replace(/[^a-zA-Z0-9@.]/g, "_");
         document.getElementById("userInfo").innerText = "Ingelogd als: " + loggedInUsername;
- 
-        // Hide the login button after login
+
         document.getElementById("loginBtn").style.display = "none";
-        // CHANGED: Show custom file button instead of default file input
         document.getElementById("customFileBtn").style.display = "block";
         document.getElementById("uploadBtn").style.display = "block";
- 
+        document.getElementById("dropdownMenu").style.display = "block";
       } catch (error) {
         document.getElementById("status").innerText = "Login mislukt: " + error;
       }
     };
- 
-    // CHANGED: When custom file button is clicked, trigger hidden input
+
     document.getElementById("customFileBtn").onclick = () => {
       document.getElementById("fileInput").click();
     };
- 
-    // When a file is selected, display the file name
-    document.getElementById("fileInput").addEventListener('change', function() {
+
+    document.getElementById("fileInput").addEventListener('change', function () {
       const file = this.files[0];
       if (file) {
         document.getElementById("selectedFileName").innerText = "Geselecteerd bestand: " + file.name;
       }
     });
+
     document.getElementById("uploadBtn").onclick = async () => {
       const file = document.getElementById("fileInput").files[0];
+      const category = document.getElementById("dropdownMenu").value;
+
       if (!file) {
-        document.getElementById("status").innerText = "Geen bestand geselecteerd.";
+        document.getElementById("status").innerText = "❌ Geen bestand geselecteerd.";
         return;
       }
- 
-      const newFileName = loggedInUsername + "_" + file.name;
- 
+
+      if (!category) {
+        document.getElementById("status").innerText = "❌ Kies een categorie uit het menu.";
+        return;
+      }
+
+      const newFileName = loggedInUsername + "_" + category + "_" + file.name;
+
       const sasUrl = "https://uploadsvoaz.blob.core.windows.net/test/" + encodeURIComponent(newFileName) +
         "?sp=cw&st=2025-06-19T13:28:27Z&se=2026-08-01T21:28:27Z&spr=https&sv=2024-11-04&sr=c&sig=xI4Gk3vcjEGscXBoSrW270qVWCyMOC%2FdQPlg2FI7VUQ%3D";
+
       try {
         const response = await fetch(sasUrl, {
           method: "PUT",
-          headers: {
-            "x-ms-blob-type": "BlockBlob"
-          },
+          headers: { "x-ms-blob-type": "BlockBlob" },
           body: file
         });
+
         if (response.ok) {
-          document.getElementById("status").innerText = "✅ Bestand succesvol geüpload.";
+          document.getElementById("status").innerText = "✅ Bestand succesvol geüpload als: " + newFileName;
         } else {
           const errorText = await response.text();
           document.getElementById("status").innerText = "❌ Upload mislukt: " + response.status + " - " + errorText;
@@ -122,7 +136,6 @@
         document.getElementById("status").innerText = "❌ Fout bij uploaden: " + err;
       }
     };
-</script>
+  </script>
 </body>
 </html>
- 
