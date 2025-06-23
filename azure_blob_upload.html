@@ -85,7 +85,11 @@
       }
     };
  
-    
+    document.getElementById("uploadBtn").onclick = async () => {
+      const file = document.getElementById("fileInput").files[0];
+      if (!file) {
+        document.getElementById("status").innerText = "Geen bestand geselecteerd.";
+        return;
       }
  
       const newFileName = loggedInUsername + "_" + file.name;
