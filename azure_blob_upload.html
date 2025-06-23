@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Azure Blob Upload with Office 365 Login</title>
+  <title>Azure Blob Upload met Office 365 Login</title>
   <script src="https://alcdn.msauth.net/browser/2.37.0/js/msal-browser.min.js"></script>
   <style>
     body {
@@ -14,15 +14,14 @@
       font-family: sans-serif;
       text-align: center;
     }
- 
+
     button {
       padding: 12px 24px;
       font-size: 20px;
       margin: 10px;
       cursor: pointer;
     }
- 
-    /* ✅ Styled label as file picker button */
+
     #fileLabel {
       display: inline-block;
       background-color: #0078d4;
@@ -34,7 +33,7 @@
       border: none;
       border-radius: 4px;
     }
- 
+
     img {
       display: block;
       margin: 20px auto 0;
@@ -46,20 +45,21 @@
 <body>
   <img src="https://nicolaas.nl/Portals/_default/Skins/Sint%20Nicolaas%20Lyceum/images/logo.png" alt="St Nicolaas Lyceum Logo">
   <h2>Upload naar Azure Blob Storage (met Office 365-login)</h2>
- 
+
   <button id="loginBtn">Aanmelden met Office 365</button>
   <p id="userInfo"></p>
- 
-  <!-- ✅ Styled label as custom file upload button -->
+
   <label for="fileInput" id="fileLabel" style="display:none;">📁 Kies een bestand</label>
   <input id="fileInput" type="file" style="display:none;" />
- 
-  <button id="uploadBtn" style="display:none;">Upload bestand</button>
+
+  <!-- ✅ Onzichtbare maar actieve uploadknop -->
+  <button id="uploadBtn" style="opacity: 0; position: absolute; pointer-events: none;">Upload bestand</button>
+
   <p id="status"></p>
- 
+
   <script>
     let loggedInUsername = "";
- 
+
     const msalConfig = {
       auth: {
         clientId: "9744af54-6113-40dd-af2d-7c66a1c0074f",
@@ -67,35 +67,40 @@
         redirectUri: "https://iridescent-pie-f973f8.netlify.app"
       }
     };
- 
+
     const msalInstance = new msal.PublicClientApplication(msalConfig);
- 
+
     document.getElementById("loginBtn").onclick = async () => {
       try {
         const loginResponse = await msalInstance.loginPopup({ scopes: ["user.read"] });
         loggedInUsername = loginResponse.account.username.replace(/[^a-zA-Z0-9@.]/g, "_");
         document.getElementById("userInfo").innerText = "Ingelogd als: " + loggedInUsername;
- 
-        // ✅ Show custom file input and upload button
+
+        // Toon het label voor bestand kiezen
         document.getElementById("fileInput").style.display = "block";
         document.getElementById("fileLabel").style.display = "inline-block";
-        document.getElementById("uploadBtn").style.display = "inline-block";
+
       } catch (error) {
         document.getElementById("status").innerText = "Login mislukt: " + error;
       }
     };
- 
+
+    // ✅ Automatische upload bij selectie bestand
+    document.getElementById("fileInput").onchange = () => {
+      document.getElementById("uploadBtn").click();
+    };
+
     document.getElementById("uploadBtn").onclick = async () => {
       const file = document.getElementById("fileInput").files[0];
       if (!file) {
         document.getElementById("status").innerText = "Geen bestand geselecteerd.";
         return;
       }
- 
+
       const newFileName = loggedInUsername + "_" + file.name;
       const sasUrl = "https://uploadsvoaz.blob.core.windows.net/test/" + encodeURIComponent(newFileName) +
         "?sp=cw&st=2025-06-19T13:28:27Z&se=2026-08-01T21:28:27Z&spr=https&sv=2024-11-04&sr=c&sig=xI4Gk3vcjEGscXBoSrW270qVWCyMOC%2FdQPlg2FI7VUQ%3D";
- 
+
       try {
         const response = await fetch(sasUrl, {
           method: "PUT",
@@ -104,7 +109,7 @@
           },
           body: file
         });
- 
+
         if (response.ok) {
           document.getElementById("status").innerText = "✅ Bestand succesvol geüpload.";
         } else {
