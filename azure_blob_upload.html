@@ -39,15 +39,15 @@
 </head>
 <body>
   <img src="https://nicolaas.nl/Portals/_default/Skins/Sint%20Nicolaas%20Lyceum/images/logo.png" alt="St Nicolaas Lyceum Logo">
-  <h2>Upload uw bestand (met Office 365-login)</h2>
+  <h2>Upload jouw bestand (met Office 365-login)</h2>
   <button id="loginBtn">Aanmelden met Office 365</button>
   <p id="userInfo"></p>
 
   <!-- Categorie dropdown -->
   <select id="dropdownMenu">
-    <option value="">-- Kies een categorie --</option>
-    <option value="documenten">Documenten</option>
-    <option value="afbeeldingen">Afbeeldingen</option>
+    <option value="">-- Kies jouw vak --</option>
+    <option value="NED">Nederlands</option>
+    <option value="ENG">Engels</option>
     <option value="overig">Overig</option>
   </select>
 
@@ -107,8 +107,8 @@
     const categoryDropdown = document.getElementById("dropdownMenu");
 
     const opties = {
-      documenten: ["Officiële documenten", "Persoonlijke notities", "PDF-rapporten"],
-      afbeeldingen: ["Foto's", "Screenshots", "Illustraties"],
+      NED: ["Campo", "Smit", "Frank","van Rijswijk", "van Meggelen", "de Krosse","Jansen", "Boughlala", "Oomes", "Janssens", "Dahlhaus"],
+      ENG: ["Maas", "van Gils", "Keijner", "Chapman", "Hendriks","Kollaard"]
       overig: ["ZIP-bestanden", "Audio", "Anders"]
     };
 
@@ -116,7 +116,7 @@
       const gekozen = categoryDropdown.value;
 
       if (opties[gekozen]) {
-        subDropdown.innerHTML = "<option value=''>-- Kies een subcategorie --</option>";
+        subDropdown.innerHTML = "<option value=''>-- Kies jouw docent --</option>";
         opties[gekozen].forEach(sub => {
           const optie = document.createElement("option");
           optie.value = sub.toLowerCase().replace(/\s+/g, "_");
@@ -145,7 +145,7 @@
         return;
       }
 
-      const newFileName = `${loggedInUsername}_${category}_${subcategory}_${file.name}`;
+      const newFileName = `${category}_${subcategory}_${loggedInUsername}_${file.name}`;
 
       const sasUrl = "https://uploadsvoaz.blob.core.windows.net/test/" + encodeURIComponent(newFileName) +
         "?sp=cw&st=2025-06-19T13:28:27Z&se=2026-08-01T21:28:27Z&spr=https&sv=2024-11-04&sr=c&sig=xI4Gk3vcjEGscXBoSrW270qVWCyMOC%2FdQPlg2FI7VUQ%3D";
