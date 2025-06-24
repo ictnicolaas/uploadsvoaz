@@ -43,13 +43,14 @@
   <button id="loginBtn">Aanmelden met Office 365</button>
   <p id="userInfo"></p>
 
-  <!-- Categorie dropdown -->
+<!-- Categorie dropdown -->
   <select id="dropdownMenu">
-    <option value="">-- Kies een categorie --</option>
-    <option value="documenten">Documenten</option>
-    <option value="afbeeldingen">Afbeeldingen</option>
+    <option value="">-- Kies jouw vak --</option>
+    <option value="NED">Nederlands</option>
+    <option value="ENG">Engels</option>
     <option value="overig">Overig</option>
   </select>
+
 
   <!-- Subcategorie dropdown -->
   <select id="subDropdown">
@@ -107,9 +108,10 @@
     const categoryDropdown = document.getElementById("dropdownMenu");
 
     const opties = {
-      documenten: ["Officiële documenten", "Persoonlijke notities", "PDF-rapporten"],
-      afbeeldingen: ["Foto's", "Screenshots", "Illustraties"],
+      NED: ["Campo", "Smit", "Frank","van Rijswijk", "van Meggelen", "de Krosse","Jansen", "Boughlala", "Oomes", "Janssens", "Dahlhaus"],
+      ENG: ["Maas", "van Gils", "Keijner", "Chapman", "Hendriks","Kollaard"]
       overig: ["ZIP-bestanden", "Audio", "Anders"]
+
     };
 
     categoryDropdown.onchange = () => {
