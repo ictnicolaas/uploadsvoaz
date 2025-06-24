@@ -107,7 +107,7 @@
     const categoryDropdown = document.getElementById("dropdownMenu");
 
     const opties = {
-      NED: ["Dahlhaus", "Frank", "Smit", "van Rijswijk", "van Meggelen", "de Krosse","Jansen", "Boughlala", "Oomes","Campo", "Janssens"],
+      documenten: ["Officiële documenten", "Persoonlijke notities", "PDF-rapporten"],
       afbeeldingen: ["Foto's", "Screenshots", "Illustraties"],
       overig: ["ZIP-bestanden", "Audio", "Anders"]
     };
@@ -145,7 +145,7 @@
         return;
       }
 
-      const newFileName = `${category}_${subcategory}_${loggedInUsername}_${file.name}`;
+      const newFileName = `${loggedInUsername}_${category}_${subcategory}_${file.name}`;
 
       const sasUrl = "https://uploadsvoaz.blob.core.windows.net/test/" + encodeURIComponent(newFileName) +
         "?sp=cw&st=2025-06-19T13:28:27Z&se=2026-08-01T21:28:27Z&spr=https&sv=2024-11-04&sr=c&sig=xI4Gk3vcjEGscXBoSrW270qVWCyMOC%2FdQPlg2FI7VUQ%3D";
