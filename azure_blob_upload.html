@@ -74,121 +74,125 @@
   <button id="uploadBtn">Upload bestand</button>
   <p id="status"></p>
 
-  <script>
-    let loggedInUsername = "";
+<script>
+  let loggedInUsername = "";
 
-    const msalConfig = {
-      auth: {
-        clientId: "9744af54-6113-40dd-af2d-7c66a1c0074f",
-        authority: "https://login.microsoftonline.com/09edd05b-fad2-49ac-875a-832a4a81c771",
-        redirectUri: "https://iridescent-pie-f973f8.netlify.app"
-      }
-    };
+  const msalConfig = {
+    auth: {
+      clientId: "9744af54-6113-40dd-af2d-7c66a1c0074f",
+      authority: "https://login.microsoftonline.com/09edd05b-fad2-49ac-875a-832a4a81c771",
+      redirectUri: "https://iridescent-pie-f973f8.netlify.app"
+    }
+  };
 
-    const msalInstance = new msal.PublicClientApplication(msalConfig);
+  const msalInstance = new msal.PublicClientApplication(msalConfig);
 
-    document.getElementById("loginBtn").onclick = async () => {
-      try {
-        const loginResponse = await msalInstance.loginPopup({ scopes: ["user.read"] });
-        loggedInUsername = loginResponse.account.username.replace(/[^a-zA-Z0-9@.]/g, "_");
-        document.getElementById("userInfo").innerText = "Ingelogd als: " + loggedInUsername;
+  document.getElementById("loginBtn").onclick = async () => {
+    try {
+      const loginResponse = await msalInstance.loginPopup({ scopes: ["user.read"] });
+      loggedInUsername = loginResponse.account.username.replace(/[^a-zA-Z0-9@.]/g, "_");
+      document.getElementById("userInfo").innerText = "Ingelogd als: " + loggedInUsername;
 
-        document.getElementById("loginBtn").style.display = "none";
-        document.getElementById("customFileBtn").style.display = "block";
-        document.getElementById("uploadBtn").style.display = "block";
-        document.getElementById("dropdownMenu").style.display = "block";
-      } catch (error) {
-        document.getElementById("status").innerText = "Login mislukt: " + error;
-      }
-    };
+      document.getElementById("loginBtn").style.display = "none";
+      document.getElementById("customFileBtn").style.display = "block";
+      document.getElementById("uploadBtn").style.display = "block";
+      document.getElementById("dropdownMenu").style.display = "block";
+    } catch (error) {
+      document.getElementById("status").innerText = "Login mislukt: " + error;
+    }
+  };
 
-    document.getElementById("customFileBtn").onclick = () => {
-      document.getElementById("fileInput").click();
-    };
+  document.getElementById("customFileBtn").onclick = () => {
+    document.getElementById("fileInput").click();
+  };
 
-    document.getElementById("fileInput").addEventListener('change', function () {
-      const file = this.files[0];
-      if (file) {
-        document.getElementById("selectedFileName").innerText = "Geselecteerd bestand: " + file.name;
-      }
-    });
+  document.getElementById("fileInput").addEventListener('change', function () {
+    const file = this.files[0];
+    if (file) {
+      document.getElementById("selectedFileName").innerText = "Geselecteerd bestand: " + file.name;
+    }
+  });
 
-    // Subcategorie logica
-    const subDropdown = document.getElementById("subDropdown");
-    const categoryDropdown = document.getElementById("dropdownMenu");
+  const subDropdown = document.getElementById("subDropdown");
+  const categoryDropdown = document.getElementById("dropdownMenu");
 
-    const opties = {
-      NED: ["Campo", "Smit", "Frank","van Rijswijk", "van Meggelen", "de Krosse","Jansen", "Boughlala", "Oomes", "Janssens", "Dahlhaus"],
-      ENG: ["Maas", "van Gils", "Keijner", "Chapman", "Hendriks","Kollaard"],
-      AK: ["van Mechelen", "Kennemer", "Patandin","Spijksma", "Bentouhami", "van Beurden","Bentouhami", "Hoekstra"],
-      ECO: ["Heesbeen", "Uariachi", "Bani", "Ben Yahia"],
-      BIO: ["van Rhijn", "ten Hoedt", "van der Meer","Smienk", "Knip", "Koopstra","Ypenburg"],
-      DUI: ["Puttenstein", "van Leeuwen", "Fromming", "Muller", "Lassche"],
-      FRA: ["Buttitta", "Le Fur", "Badouri","Bouras", "Frinking", "Boujane","De Bree", "Valstar", "Idaaci"],
-      GES: ["Berfelo", "Erkelens", "Karabay", "Spelt", "van Viegen","Heuvelmans","Campos"],
-      INF: ["Stokhof", "Both"],
-      LB: ["van As", "van Regemortel", "Brouwer", "Hosink", "Ferdinandus"],
-      NAT: ["den Oudsten", "Damsma", "Nuijtjens","Pultoo", "Grant", "Bongers","Wilders"],
-      SCH: ["Visscher-Hofman", "Bus", "Nooij", "Novotna", "Wilders"],
-      SPA: ["Buttitta", "L'Merrouni"],
-      WIS: ["Eeckels", "Boers", "Gorissen", "Verbree", "Shararah","Stokhof","van der Straeten", "Bongers","Schutman","Jainullah", "Both", "Jonker", "Paternotte","Noorsij"]
-    };
+  const opties = {
+    NED: ["Campo", "Smit", "Frank", "van Rijswijk", "van Meggelen", "de Krosse", "Jansen", "Boughlala", "Oomes", "Janssens", "Dahlhaus"],
+    ENG: ["Maas", "van Gils", "Keijner", "Chapman", "Hendriks", "Kollaard"],
+    AK: ["van Mechelen", "Kennemer", "Patandin", "Spijksma", "Bentouhami", "van Beurden", "Hoekstra"],
+    ECO: ["Heesbeen", "Uariachi", "Bani", "Ben Yahia"],
+    BIO: ["van Rhijn", "ten Hoedt", "van der Meer", "Smienk", "Knip", "Koopstra", "Ypenburg"],
+    DUI: ["Puttenstein", "van Leeuwen", "Fromming", "Muller", "Lassche"],
+    FRA: ["Buttitta", "Le Fur", "Badouri", "Bouras", "Frinking", "Boujane", "De Bree", "Valstar", "Idaaci"],
+    GES: ["Berfelo", "Erkelens", "Karabay", "Spelt", "van Viegen", "Heuvelmans", "Campos"],
+    INF: ["Stokhof", "Both"],
+    LB: ["van As", "van Regemortel", "Brouwer", "Hosink", "Ferdinandus"],
+    NAT: ["den Oudsten", "Damsma", "Nuijtjens", "Pultoo", "Grant", "Bongers", "Wilders"],
+    SCH: ["Visscher-Hofman", "Bus", "Nooij", "Novotna", "Wilders"],
+    SPA: ["Buttitta", "L'Merrouni"],
+    WIS: ["Eeckels", "Boers", "Gorissen", "Verbree", "Shararah", "Stokhof", "van der Straeten", "Bongers", "Schutman", "Jainullah", "Both", "Jonker", "Paternotte", "Noorsij"]
+  };
 
-    categoryDropdown.onchange = () => {
-      const gekozen = categoryDropdown.value;
+  categoryDropdown.onchange = () => {
+    const gekozen = categoryDropdown.value;
+    subDropdown.innerHTML = "";
 
-      if (opties[gekozen]) {
-        subDropdown.innerHTML = "<option value=''>-- Kies jouw docent --</option>";
-        opties[gekozen].forEach(sub => {
-          const optie = document.createElement("option");
-          optie.value = sub.toLowerCase().replace(/\s+/g, "_");
-          optie.textContent = sub;
-          subDropdown.appendChild(optie);
-        });
-        subDropdown.style.display = "block";
+    if (opties[gekozen]) {
+      subDropdown.innerHTML = "<option value=''>-- Kies jouw docent --</option>";
+      opties[gekozen].forEach(sub => {
+        const optie = document.createElement("option");
+        optie.value = sub.toLowerCase().replace(/\s+/g, "_");
+        optie.textContent = sub;
+        subDropdown.appendChild(optie);
+      });
+      subDropdown.style.display = "block";
+    } else {
+      subDropdown.style.display = "none";
+    }
+  };
+
+  document.getElementById("uploadBtn").onclick = async () => {
+    const file = document.getElementById("fileInput").files[0];
+    const category = categoryDropdown.value;
+    const subcategory = subDropdown.value;
+
+    if (!file) {
+      document.getElementById("status").innerText = "❌ Geen bestand geselecteerd.";
+      return;
+    }
+
+    if (!category) {
+      document.getElementById("status").innerText = "❌ Kies een categorie.";
+      return;
+    }
+
+    if (!subcategory) {
+      document.getElementById("status").innerText = "❌ Kies een subcategorie.";
+      return;
+    }
+
+    const newFileName = `${category}_${subcategory}_${loggedInUsername}_${file.name}`;
+    const sasUrl = "https://uploadsvoaz.blob.core.windows.net/test/" + encodeURIComponent(newFileName) +
+      "?sp=cw&st=2025-06-19T13:28:27Z&se=2026-08-01T21:28:27Z&spr=https&sv=2024-11-04&sr=c&sig=xI4Gk3vcjEGscXBoSrW270qVWCyMOC%2FdQPlg2FI7VUQ%3D";
+
+    try {
+      const response = await fetch(sasUrl, {
+        method: "PUT",
+        headers: { "x-ms-blob-type": "BlockBlob" },
+        body: file
+      });
+
+      if (response.ok) {
+        document.getElementById("status").innerText = "✅ Bestand succesvol geüpload als: " + newFileName;
       } else {
-        subDropdown.style.display = "none";
-        subDropdown.innerHTML = "";
+        const errorText = await response.text();
+        document.getElementById("status").innerText = "❌ Upload mislukt: " + response.status + " - " + errorText;
       }
-    };
+    } catch (err) {
+      document.getElementById("status").innerText = "❌ Fout bij uploaden: " + err;
+    }
+  };
+</script>
 
-    document.getElementById("uploadBtn").onclick = async () => {
-      const file = document.getElementById("fileInput").files[0];
-      const category = categoryDropdown.value;
-      const subcategory = subDropdown.value || "geen_sub";
-
-      if (!file) {
-        document.getElementById("status").innerText = "❌ Geen bestand geselecteerd.";
-        return;
-      }
-
-      if (!category) {
-        document.getElementById("status").innerText = "❌ Kies een categorie.";
-        return;
-      }
-
-      const newFileName = `${category}_${subcategory}_${loggedInUsername}_${file.name}`;
-
-      const sasUrl = "https://uploadsvoaz.blob.core.windows.net/test/" + encodeURIComponent(newFileName) +
-        "?sp=cw&st=2025-06-19T13:28:27Z&se=2026-08-01T21:28:27Z&spr=https&sv=2024-11-04&sr=c&sig=xI4Gk3vcjEGscXBoSrW270qVWCyMOC%2FdQPlg2FI7VUQ%3D";
-
-      try {
-        const response = await fetch(sasUrl, {
-          method: "PUT",
-          headers: { "x-ms-blob-type": "BlockBlob" },
-          body: file
-        });
-
-        if (response.ok) {
-          document.getElementById("status").innerText = "✅ Bestand succesvol geüpload als: " + newFileName;
-        } else {
-          const errorText = await response.text();
-          document.getElementById("status").innerText = "❌ Upload mislukt: " + response.status + " - " + errorText;
-        }
-      } catch (err) {
-        document.getElementById("status").innerText = "❌ Fout bij uploaden: " + err;
-      }
-    };
-  </script>
 </body>
 </html>
